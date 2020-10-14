@@ -1,5 +1,5 @@
-#include <Wire.h>
-#include <Stings.h>
+// #include <Wire.h>
+// #include <Stings.h>
 
 // General things
 #define pin_reed 3
