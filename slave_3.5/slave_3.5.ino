@@ -3,24 +3,23 @@
 // # Tom Dingenouts
 // #######
 
-
-
+// #include <Arduino.h>
 #include <Wire.h>
 // #include <Stings.h>
 
 // General things
-const int pin_reed 3
-const int pin_story_led 9
-const int pin_door_led 13
+const int pin_reed = 2;
+const int pin_story_led = 3;
+const int pin_door_led = 4;
 boolean state_mag = false;
 
 
 // button related 
-const int b_up 5
-const int b_up_led 6
+const int b_up = 5;
+const int b_up_led = 6;
 boolean b_up_state = false;
-const int b_dn 7
-const int b_dn_led 8
+const int b_dn = 7;
+const int b_dn_led = 8;
 boolean b_dn_state = false;
 
 
@@ -32,9 +31,9 @@ int mov_pos = 0;
 
 
 // shift register related
-const int sr_latch 12
-const int sr_clock 10
-const int sr_data 11
+const int sr_latch = 12;
+const int sr_clock = 10;
+const int sr_data = 11;
 int sr_display_array[9] = {3, 159, 37, 13, 153, 73, 65, 31, 1}; // dependant on if 7-segment is Common Annode / - Cathode
 
 // pin arrays used in setup()
@@ -52,19 +51,19 @@ const int i2c_adress = 8;
 void setup() {
     Serial.begin(9600);
 
-  	// I2C init stuff
+    // I2C init stuff
     Wire.begin(i2c_adress);
     Wire.onRequest(I2C_OnRequest);
     Wire.onReceive(I2C_OnReceive);
   
-  // lazy way of pinMode initialisation
-  for (int i = 0; i < 2; i++) {
-    pinMode(pins_intput[i], INPUT);
-  }
+    // lazy way of pinMode initialisation
+    for (int i = 0; i < 2; i++) {
+      pinMode(pins_input[i], INPUT);
+    }
   
-  for (int i = 0; i < 6; i++) {
-    pinMode(pins_output[i], OUTPUT);
-  }
+    for (int i = 0; i < 6; i++) {
+      pinMode(pins_output[i], OUTPUT);
+    }
 }
 
 
@@ -148,7 +147,7 @@ void I2C_OnRequest() {
 
 //======================================== Master on Receive
 // receive data from master
-void I2C_OnReceive() {
+void I2C_OnReceive(int a) {
     while (Wire.available()) {
         mov_pos = Wire.read(); // read postition data
     }

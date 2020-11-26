@@ -1,4 +1,5 @@
-// #include <Wire.h>
+#include <Wire.h>
+#include <Arduino.h>
 // #include <Stings.h>
 
 // General things
