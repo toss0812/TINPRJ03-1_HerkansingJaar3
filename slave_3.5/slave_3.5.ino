@@ -27,14 +27,14 @@ boolean b_dn_state = false;
 boolean mov_up = false;
 boolean mov_dn = false; 
 boolean mov_onfloor = false;
-int mov_pos = 1;
+int mov_pos = 0;
 
 
 // shift register related
 const int sr_latch = 12;
 const int sr_clock = 10;
 const int sr_data = 11;
-int sr_display_array[10] = {63, 6, 179, 79, 102, 65, 125, 7, 127, 11}; // dependant on if 7-segment is Common Annode / - Cathode
+int sr_display_array[10] = {63, 6, 91, 79, 102, 109, 125, 7, 127, 111}; // dependant on if 7-segment is Common Annode / - Cathode
 
 // pin arrays used in setup()
 int pins_input[] = {pin_reed, b_up, b_dn};
@@ -64,6 +64,8 @@ void setup() {
     for (int i = 0; i < 6; i++) {
       pinMode(pins_output[i], OUTPUT);
     }
+
+    SR_write(mov_pos);
 }
 
 
@@ -117,6 +119,10 @@ void loop( ){
     }
 
     SR_write(mov_pos); // write current carrige postition to 7-segment display
+
+    Serial.println("moveup" + mov_up);
+    Serial.println("movedn" + mov_dn);
+    Serial.println(mov_pos);
 }
 
 

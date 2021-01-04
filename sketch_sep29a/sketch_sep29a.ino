@@ -4,30 +4,22 @@
 
 ######*/
 
-// Pin registration
-#define p_sensor 1
-#define led_story 2
-#define led_up 3
-#define led_dn 4
-#define b_up 5
-#define b_dn 6
-
-// Shiftregister
-#define sr_data
-#define sr_clock
-#define sr_latch
+#define pin 2
 
 
 
 void setup() {
     // put your setup code here, to run once:
-    pinMode(p_sensor, OUTPUT);
+    pinMode(pin, OUTPUT);
 
 }
 
 void loop() {
     // put your main code here, to run repeatedly:
-
+    digitalWrite(pin,HIGH);
+    delay(1000);
+    digitalWrite(pin,LOW);
+    delay(1000);
 }
 
 void shiftOut(int data) {
