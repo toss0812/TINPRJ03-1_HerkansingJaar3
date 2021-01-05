@@ -1,3 +1,13 @@
+/*
+ * TODO:
+ * -FIX REEDSWITCH OUTPUT
+ * 
+ */
+
+
+
+
+
 // #######
 // # tinprj03-1 : Herkansing jaar 3
 // # Tom Dingenouts
@@ -11,16 +21,16 @@
 const int pin_reed = 2;
 const int pin_story_led = 3;
 const int pin_door_led = 4;
-boolean state_mag = false;
+int state_mag = 0;
 
 
 // button related 
 const int b_up = 5;
 const int b_up_led = 6;
-boolean b_up_state = false;
+int b_up_state = 0;
 const int b_dn = 7;
 const int b_dn_led = 8;
-boolean b_dn_state = false;
+int b_dn_state = 0;
 
 
 // movement related
@@ -66,33 +76,17 @@ void setup() {
     }
 
     SR_write(mov_pos);
+
+    // check buttons on init
+    state_mag = digitalRead(pin_reed);
+    b_up_state = digitalRead(b_up);
+    b_dn_state = digitalRead(b_dn);
 }
 
 
 //================================================== MAIN LOOP
 //
 void loop( ){
-    // check buttons
-    state_mag = digitalRead(pin_reed);
-    b_up_state = digitalRead(b_up);
-    b_dn_state = digitalRead(b_dn);
-
-    // change movement state based on button states
-    if (b_up_state == true) { // set movement state to up
-        mov_up = true;
-        mov_dn = false;
-    }
-
-    if (b_dn_state == true) { // set movement state to down
-        mov_up = false;
-        mov_dn = true;
-    }
-
-    if (state_mag == true) { // reset momevent state if the carrige passed the story
-        mov_onfloor = true;
-        mov_up = false;
-        mov_dn = false;
-    }
 
     // change led states based on movement states
     if (mov_up == true) { // up light
@@ -110,19 +104,55 @@ void loop( ){
     if (mov_onfloor == true) { // floor indicator light
         digitalWrite(pin_story_led, HIGH);
 
-        if (mov_up == true || mov_dn == true) { // door indicator light
+        while (mov_up == true || mov_dn == true) { // door indicator light
             digitalWrite(pin_door_led, HIGH);
         }
     } else { // reset indiccator lights
         digitalWrite(pin_story_led, LOW); 
         digitalWrite(pin_door_led, LOW);
     }
+    
+    // check buttons
+    state_mag = digitalRead(pin_reed);
+    b_up_state = digitalRead(b_up);
+    b_dn_state = digitalRead(b_dn);
 
+    Serial.println(state_mag);
+
+    // change movement state based on button states
+    if (b_up_state == HIGH) { // set movement state to up
+        mov_up = true;
+        mov_dn = false;
+    }
+
+    if (b_dn_state == HIGH) { // set movement state to down
+        mov_up = false;
+        mov_dn = true;
+    }
+
+    if (state_mag == HIGH) { // reset momevent state if the carrige passed the story
+        mov_onfloor = true;
+        mov_up = false;
+        mov_dn = false;
+    } else {
+        mov_onfloor = false;
+    }
+
+    
+    if (mov_onfloor == true) {
+        mov_pos = 0;
+    }
+    
     SR_write(mov_pos); // write current carrige postition to 7-segment display
 
-    Serial.println("moveup" + mov_up);
-    Serial.println("movedn" + mov_dn);
+    // Data prints
+    Serial.print("move up: ");
+    Serial.println(mov_up);
+    Serial.print("move down: ");
+    Serial.println(mov_dn);
+    Serial.print("position: ");
     Serial.println(mov_pos);
+    Serial.println("----------");
 }
 
 
