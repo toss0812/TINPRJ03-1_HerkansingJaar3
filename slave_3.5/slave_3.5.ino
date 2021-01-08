@@ -1,13 +1,3 @@
-/*
- * TODO:
- * -FIX REEDSWITCH OUTPUT
- * 
- */
-
-
-
-
-
 // #######
 // # tinprj03-1 : Herkansing jaar 3
 // # Tom Dingenouts
@@ -62,9 +52,9 @@ void setup() {
     Serial.begin(9600);
 
     // I2C init stuff
-    Wire.begin(i2c_adress);
-    Wire.onRequest(I2C_OnRequest);
-    Wire.onReceive(I2C_OnReceive);
+    // Wire.begin(i2c_adress);
+    // Wire.onRequest(I2C_OnRequest);
+    // Wire.onReceive(I2C_OnReceive);
   
     // lazy way of pinMode initialisation
     for (int i = 0; i < 2; i++) {
@@ -86,31 +76,9 @@ void setup() {
 
 //================================================== MAIN LOOP
 //
-void loop( ){
+void loop(){
 
-    // change led states based on movement states
-    if (mov_up == true) { // up light
-        digitalWrite(b_up_led, HIGH);
-    } else {
-        digitalWrite(b_up_led, LOW);
-    }
-
-    if (mov_dn == true) { // down light
-        digitalWrite(b_dn_led, HIGH);
-    } else {
-        digitalWrite(b_dn_led, LOW);
-    }
-
-    if (mov_onfloor == true) { // floor indicator light
-        digitalWrite(pin_story_led, HIGH);
-
-        while (mov_up == true || mov_dn == true) { // door indicator light
-            digitalWrite(pin_door_led, HIGH);
-        }
-    } else { // reset indiccator lights
-        digitalWrite(pin_story_led, LOW); 
-        digitalWrite(pin_door_led, LOW);
-    }
+    
     
     // check buttons
     state_mag = digitalRead(pin_reed);
@@ -132,15 +100,44 @@ void loop( ){
 
     if (state_mag == HIGH) { // reset momevent state if the carrige passed the story
         mov_onfloor = true;
-        mov_up = false;
-        mov_dn = false;
+        if(mov_up == true || mov_dn == true){
+            EL_DoorSequence();
+            mov_up = false;
+            mov_dn = false;
+        }
     } else {
         mov_onfloor = false;
     }
 
-    
     if (mov_onfloor == true) {
         mov_pos = 0;
+    }
+
+    // change led states based on movement states
+    if (mov_up == true) { // up light
+        digitalWrite(b_up_led, HIGH);
+    } 
+    else {
+        digitalWrite(b_up_led, LOW);
+    }
+
+    if (mov_dn == true) { // down light
+        digitalWrite(b_dn_led, HIGH);
+    } 
+    else {
+        digitalWrite(b_dn_led, LOW);
+    }
+
+    if (mov_onfloor == true) { // floor indicator light
+        digitalWrite(pin_story_led, HIGH);
+
+        while (mov_up == true || mov_dn == true) { // door indicator light
+            digitalWrite(pin_door_led, HIGH);
+        }
+    } 
+    else { // reset indiccator lights
+        digitalWrite(pin_story_led, LOW); 
+        digitalWrite(pin_door_led, LOW);
     }
     
     SR_write(mov_pos); // write current carrige postition to 7-segment display
@@ -153,6 +150,7 @@ void loop( ){
     Serial.print("position: ");
     Serial.println(mov_pos);
     Serial.println("----------");
+    delay(50);
 }
 
 
@@ -187,4 +185,13 @@ void I2C_OnReceive(int a) {
     while (Wire.available()) {
         mov_pos = Wire.read(); // read postition data
     }
+}
+
+//======================================== Door open sequence
+//
+void EL_DoorSequence() {
+    digitalWrite(pin_story_led, HIGH);
+    digitalWrite(pin_door_led, HIGH);
+    delay(2500);
+    digitalWrite(pin_door_led, LOW);
 }
