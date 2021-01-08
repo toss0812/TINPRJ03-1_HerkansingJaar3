@@ -1,6 +1,6 @@
 {
   "cpu": {
     "fqbn": "arduino:avr:uno",
-    "port": ""
+    "port": "COM3"
   }
 }

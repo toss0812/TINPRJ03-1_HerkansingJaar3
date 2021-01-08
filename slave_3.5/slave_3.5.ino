@@ -52,9 +52,9 @@ void setup() {
     Serial.begin(9600);
 
     // I2C init stuff
-    // Wire.begin(i2c_adress);
-    // Wire.onRequest(I2C_OnRequest);
-    // Wire.onReceive(I2C_OnReceive);
+    Wire.begin(i2c_adress);
+    Wire.onRequest(I2C_OnRequest);
+    Wire.onReceive(I2C_OnReceive);
   
     // lazy way of pinMode initialisation
     for (int i = 0; i < 2; i++) {
@@ -101,7 +101,7 @@ void loop(){
     if (state_mag == HIGH) { // reset momevent state if the carrige passed the story
         mov_onfloor = true;
         if(mov_up == true || mov_dn == true){
-            EL_DoorSequence();
+            EL_DoorSequence(2500);
             mov_up = false;
             mov_dn = false;
         }
@@ -155,8 +155,6 @@ void loop(){
 
 
 //================================================== Custom Functions
-//
-
 //======================================== Shift Register Write
 // write number to 7-segment disply
 void SR_write(int data) {
@@ -188,10 +186,10 @@ void I2C_OnReceive(int a) {
 }
 
 //======================================== Door open sequence
-//
-void EL_DoorSequence() {
+// Opens and holds the door open for x millis
+void EL_DoorSequence(int time) {
     digitalWrite(pin_story_led, HIGH);
     digitalWrite(pin_door_led, HIGH);
-    delay(2500);
+    delay(time);
     digitalWrite(pin_door_led, LOW);
 }
