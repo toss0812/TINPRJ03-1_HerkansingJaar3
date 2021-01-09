@@ -10,7 +10,7 @@
 
 // Movement Related
 int mov_lastSeen = 0;
-int mov_target = 0;
+int mov_target = -1;
 ArduinoQueue<int> queue(10);
 
 // Semi movement related
