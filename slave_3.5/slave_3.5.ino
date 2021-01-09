@@ -42,7 +42,7 @@ int pins_output[] = {pin_story_led, pin_door_led, b_up_led, b_dn_led, sr_latch, 
 
 
 // I2C related
-byte i2c_sm_array[3] = {0, 0, 0};
+byte i2c_sm_array[2] = {0, 0};
 const int i2c_adress = 8;
 
 
@@ -77,9 +77,6 @@ void setup() {
 //================================================== MAIN LOOP
 //
 void loop(){
-
-    
-    
     // check buttons
     state_mag = digitalRead(pin_reed);
     b_up_state = digitalRead(b_up);
@@ -167,11 +164,11 @@ void SR_write(int data) {
 //======================================== On Request
 // send movement data to master
 void I2C_OnRequest() {
-    i2c_sm_array[0] = mov_up; // movement up state ?
-    i2c_sm_array[1] = mov_dn; // movement down state ?
-    i2c_sm_array[2] = mov_onfloor; // carrige on floor ?
+    if (mov_up == true || mov_dn == true){
+        i2c_sm_array[0] = 1; // user request?
+    i2c_sm_array[1] = mov_onfloor; // carrige on floor?
 
-    for (int i = 0; i < 3; i++) { 
+    for (int i = 0; i < 2; i++) { 
         Wire.write(i2c_sm_array[i]); // send data to master
     }
 }
