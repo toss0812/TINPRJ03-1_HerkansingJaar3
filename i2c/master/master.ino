@@ -3,29 +3,34 @@
 // # Tom Dingenouts
 // #######
 
-#include <Wire.h>
-#include <ArduinoQueue.h> // ripped from the interebs: https://github.com/EinarArnason/ArduinoQueue
-#include <Keypad.h>
-#include <Stepper.h>
+
+
+#include <Wire.h> // library for I2C communitation
+#include <ArduinoQueue.h> // from the interwebs: https://github.com/EinarArnason/ArduinoQueue , essentially an linked list implementation
+#include <Keypad.h> // library to read a keypad used for cab inputs 
+#include <Stepper.h> // library to control stepper motor used to move the cab
+
 
 // Movement Related
-int mov_lastSeen = 0;
-int mov_target = -1;
-ArduinoQueue<int> queue(10);
+int mov_lastSeen = 0; // index of where the cab was last seen. dependant on i2c data from slaves
+int mov_target = -1; // index of the floor the cab is currently moving to
+ArduinoQueue<int> queue(10); // queue used for movement planning
+
 
 // Semi movement related
-const int stepsPerRevolition = 50;
-Stepper stepper(stepsPerRevolution, 9, 10, 11, 12);
+const int stepsPerRevolution = 50; // No. steps in a full revolution
+Stepper stepper(stepsPerRevolution, 9, 10, 11, 12); // Initialize a steppermotor object and define the pins
 
 
 // I2C Related
-const int slave_count = 3;
-const int i2c_slaveAdress[3] = {8,9,10};
-byte i2c_slaveInfo[3][2] = {
+const int i2c_slaveCount = 3; // amount of slaves
+const int i2c_slaveAdress[i2c_slaveCount] = {8,9,10}; // array of possible slave adresses
+byte i2c_slaveInfo[i2c_slaveCount][2] = { // array of info from slaves, 1) was there a floor call? 2) is the cab at this floor
     {0,0},
     {0,0},
     {0,0},
 };
+
 
 // Keypad related
 const byte rows = 4;
@@ -48,8 +53,9 @@ void setup(){
     stepper.setSpeed(60); // set stepper rpm to 60
 }
 
-//============================================================ Main Loop
-void main(){
+
+//============================================================ MAIN LOOP
+void loop(){
     for(int i = 0; i < 2; i++){
         Wire.requestFrom(i2c_slaveAdress[i], 2); // request info from slave @adress, of 2 byte length 
 
@@ -73,7 +79,7 @@ void main(){
     }
 
     // write current carrige position to slaves
-    for(int i = 0; i < 2: i++){
+    for(int i = 0; i < 2; i++){
         Wire.begin(i2c_slaveAdress[i]);
         Wire.write(mov_lastSeen);
         Wire.endTransmission();
@@ -84,7 +90,6 @@ void main(){
 
     if(kp_current != NO_KEY){ // if anything from keypad, add to queue 
         queue.enqueue(atoi(kp_current)); // convert char to int
-
     }
 
     // when there are new floor calls and the carrige is idle, get new destination, -1 as target is considered idle
@@ -96,27 +101,31 @@ void main(){
 }
 
 
-//==========
+//============================================================ MOVE
+// > check if the cab is idle , just to be sure
+// > check if cab has reached the destination
+// > check what direction the cab has to move
+// > move cab to given direction
 void move(int current, int target){
     if (current == -1){ // cab is idle
-        break;
+        return;
     }
     
     if (current == target){ // cab has reached target
         mov_lastSeen = -1; // set cab to idle
-        break;
+        return;
     }
     
     if (current < target){ // cab has to go up
-        stepper.step(stepsPerRevolition);
-        blink(9)
-        break;
+        stepper.step(stepsPerRevolution);
+        blink(9);
+        return;
     }
 
     if (current > target){ // cab has to go down
-        stepper.step(-stepsPerRevolition);
+        stepper.step(-stepsPerRevolution);
         blink(11);
-        break;
+        return;
     }
 }
 

@@ -11,7 +11,7 @@
 const int pin_reed = 2;
 const int pin_story_led = 3;
 const int pin_door_led = 4;
-int state_mag = 0;
+int b_mag_state = 0;
 
 
 // button related 
@@ -36,6 +36,7 @@ const int sr_clock = 10;
 const int sr_data = 11;
 int sr_display_array[10] = {63, 6, 91, 79, 102, 109, 125, 7, 127, 111}; // dependant on if 7-segment is Common Annode / - Cathode
 
+
 // pin arrays used in setup()
 int pins_input[] = {pin_reed, b_up, b_dn};
 int pins_output[] = {pin_story_led, pin_door_led, b_up_led, b_dn_led, sr_latch, sr_data, sr_clock};
@@ -58,31 +59,33 @@ void setup() {
   
     // lazy way of pinMode initialisation
     for (int i = 0; i < 2; i++) {
-      pinMode(pins_input[i], INPUT);
+      pinMode(pins_input[i], INPUT); // input pins
     }
-  
     for (int i = 0; i < 6; i++) {
-      pinMode(pins_output[i], OUTPUT);
+      pinMode(pins_output[i], OUTPUT); // output pins
     }
 
-    SR_write(mov_pos);
+    SR_write(mov_pos); // write cab postition to 7-segement
 
     // check buttons on init
-    state_mag = digitalRead(pin_reed);
+    b_mag_state = digitalRead(pin_reed);
     b_up_state = digitalRead(b_up);
     b_dn_state = digitalRead(b_dn);
 }
 
 
 //================================================== MAIN LOOP
-//
+// > check button states and save to temps
+// > change states according to temps
+// > change lights according to states
+// > write cabs' current position to 7-segement
+// > print all info for debugging
 void loop(){
     // check buttons
-    state_mag = digitalRead(pin_reed);
+    b_mag_state = digitalRead(pin_reed);
     b_up_state = digitalRead(b_up);
     b_dn_state = digitalRead(b_dn);
 
-    Serial.println(state_mag);
 
     // change movement state based on button states
     if (b_up_state == HIGH) { // set movement state to up
@@ -95,19 +98,17 @@ void loop(){
         mov_dn = true;
     }
 
-    if (state_mag == HIGH) { // reset momevent state if the carrige passed the story
+    if (b_mag_state == HIGH) { // reset momevent state if the carrige passed the story
         mov_onfloor = true;
+        mov_pos = 0; // quick override of global cab position, could otherwise not updaate in time
+
         if(mov_up == true || mov_dn == true){
-            EL_DoorSequence(2500);
-            mov_up = false;
-            mov_dn = false;
+            EL_DoorSequence(2500); // cheaty way of holding the door open 
+            mov_up = false; // reset movement requests
+            mov_dn = false; // |
         }
     } else {
-        mov_onfloor = false;
-    }
-
-    if (mov_onfloor == true) {
-        mov_pos = 0;
+        mov_onfloor = false; // reset local cab indicator
     }
 
     // change led states based on movement states
@@ -153,7 +154,7 @@ void loop(){
 
 //================================================== Custom Functions
 //======================================== Shift Register Write
-// write number to 7-segment disply
+// > write number to 7-segment disply
 void SR_write(int data) {
     digitalWrite(sr_latch, HIGH);
     shiftOut(sr_data, sr_clock, MSBFIRST, sr_display_array[data]); // data is the indicator used in an array
@@ -162,11 +163,17 @@ void SR_write(int data) {
 
 
 //======================================== On Request
-// send movement data to master
+// > send movement data to master
 void I2C_OnRequest() {
-    if (mov_up == true || mov_dn == true){
-        i2c_sm_array[0] = 1; // user request?
-    i2c_sm_array[1] = mov_onfloor; // carrige on floor?
+    if (mov_up == true || mov_dn == true) { // user requests movement?
+        i2c_sm_array[0] = 1; 
+    }
+
+    if (mov_onfloor == true) { // cab on floor?
+        i2c_sm_array[1] = 1; 
+    } else {
+        i2c_sm_array[1] = 0; // reset just to be sure
+    }
 
     for (int i = 0; i < 2; i++) { 
         Wire.write(i2c_sm_array[i]); // send data to master
@@ -174,8 +181,8 @@ void I2C_OnRequest() {
 }
 
 
-//======================================== Master on Receive
-// receive data from master
+//======================================== on Receive
+// > receive data from master
 void I2C_OnReceive(int a) {
     while (Wire.available()) {
         mov_pos = Wire.read(); // read postition data
