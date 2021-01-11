@@ -4,7 +4,10 @@
 // #######
 
 
+// 「The Dictator」
 
+
+// Includess
 #include <Wire.h> // library for I2C communitation
 #include <ArduinoQueue.h> // from the interwebs: https://github.com/EinarArnason/ArduinoQueue , essentially an linked list implementation
 #include <Keypad.h> // library to read a keypad used for cab inputs 

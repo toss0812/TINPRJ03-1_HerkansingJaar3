@@ -3,9 +3,13 @@
 // # Tom Dingenouts
 // #######
 
-// #include <Arduino.h>
+
+// 「The Subject」
+
+
+// Includes
 #include <Wire.h>
-// #include <Stings.h>
+
 
 // General things
 const int pin_reed = 2;
